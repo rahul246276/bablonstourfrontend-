@@ -64,6 +64,11 @@ export const ADMIN_ROUTES = {
   ITINERARY_BUILDER_NEW: '/admin/itineraries/new',
   ITINERARY_BUILDER_FOR_ENQUIRY: (enquiryId) => `/admin/itineraries/new?enquiryId=${enquiryId}`,
   ITINERARY_BUILDER: '/admin/itineraries/:id',
+  ITINERARY_EDIT: '/admin/itineraries/:id/edit',
+  ITINERARIES: '/admin/itineraries',
+  ITINERARY_TEMPLATES: '/admin/itinerary-templates',
+  ITINERARY_TEMPLATE_NEW: '/admin/itinerary-templates/new',
+  ITINERARY_TEMPLATE_EDIT: '/admin/itinerary-templates/:id/edit',
 }
 
 // Combine all routes

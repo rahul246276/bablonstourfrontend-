@@ -1,10 +1,15 @@
 const MEAL_OPTIONS = ['Breakfast', 'Lunch', 'Dinner'];
 
-export default function DayEditor({ day, index, setDayPlan }) {
+import { useState } from 'react';
+
+export default function DayEditor({ day, index, dayCount, setDayPlan, ImageUploader, onEdit = () => {}, onDuplicate = () => {} }) {
+  const [expanded, setExpanded] = useState(true);
   function updateField(field, value) {
+    onEdit();
     setDayPlan((prev) => prev.map((d, i) => (i === index ? { ...d, [field]: value } : d)));
   }
   function updateActivity(actIndex, value) {
+    onEdit();
     setDayPlan((prev) =>
       prev.map((d, i) =>
         i === index ? { ...d, activities: d.activities.map((a, ai) => (ai === actIndex ? value : a)) } : d
@@ -12,14 +17,17 @@ export default function DayEditor({ day, index, setDayPlan }) {
     );
   }
   function addActivity() {
+    onEdit();
     setDayPlan((prev) => prev.map((d, i) => (i === index ? { ...d, activities: [...d.activities, ''] } : d)));
   }
   function removeActivity(actIndex) {
+    onEdit();
     setDayPlan((prev) =>
       prev.map((d, i) => (i === index ? { ...d, activities: d.activities.filter((_, ai) => ai !== actIndex) } : d))
     );
   }
   function toggleMeal(meal) {
+    onEdit();
     setDayPlan((prev) =>
       prev.map((d, i) => {
         if (i !== index) return d;
@@ -29,16 +37,36 @@ export default function DayEditor({ day, index, setDayPlan }) {
     );
   }
 
+  function move(offset) {
+    onEdit();
+    setDayPlan((prev) => {
+      const target = index + offset;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next.map((item, i) => ({ ...item, dayNumber: i + 1 }));
+    });
+  }
+  function duplicate() {
+    if (dayCount >= 60) return;
+    onEdit();
+    onDuplicate(Boolean(day.overnight));
+    setDayPlan((prev) => [...prev.slice(0, index + 1), { ...day, activities: [...day.activities], meals: [...day.meals], image: { ...(day.image || {}) } }, ...prev.slice(index + 1)].map((item, i) => ({ ...item, dayNumber: i + 1 })));
+  }
+
   return (
     <div className={`flex flex-col gap-2.5 ${index > 0 ? 'border-t border-dashed border-[#ECE4D0] pt-4 mt-1' : ''}`}>
-      <span className="text-[11px] font-bold uppercase tracking-wide text-[#D4A24C]">Day {day.dayNumber}</span>
+      <div className="flex items-center gap-2"><button type="button" className="mr-auto text-left text-[11px] font-bold uppercase tracking-wide text-[#D4A24C]" onClick={() => setExpanded((value) => !value)}>Day {day.dayNumber}: {day.shortTitle || day.title || 'Untitled'} {expanded ? '−' : '+'}</button><button type="button" onClick={() => move(-1)} disabled={index === 0} className="rounded border px-2 py-1 text-xs disabled:opacity-40">↑</button><button type="button" onClick={() => move(1)} disabled={index === dayCount - 1} className="rounded border px-2 py-1 text-xs disabled:opacity-40">↓</button><button type="button" onClick={duplicate} disabled={dayCount >= 60} className="rounded border px-2 py-1 text-xs disabled:opacity-40">Duplicate</button></div>
+      {expanded && <>
 
       <input
         className="rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm text-[#1B2A4A]"
-        placeholder="Arrival in Dubai"
+        placeholder="e.g. Arrive in Almaty"
         value={day.title}
         onChange={(e) => updateField('title', e.target.value)}
       />
+      <input className="rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm text-[#1B2A4A]" placeholder="Short title for overview (optional)" maxLength={60} value={day.shortTitle || ''} onChange={(e) => updateField('shortTitle', e.target.value)} />
+      <input className="rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm text-[#1B2A4A]" placeholder="Overnight city (optional)" value={day.overnight || ''} onChange={(e) => updateField('overnight', e.target.value)} />
       <textarea
         rows="2"
         className="rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm text-[#1B2A4A]"
@@ -46,22 +74,23 @@ export default function DayEditor({ day, index, setDayPlan }) {
         value={day.description}
         onChange={(e) => updateField('description', e.target.value)}
       />
+      <input className="rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm text-[#1B2A4A]" placeholder="Transfer / intercity travel (optional)" value={day.transfer || ''} onChange={(e) => updateField('transfer', e.target.value)} />
 
       <span className="text-xs font-semibold text-gray-500">Activities</span>
       {day.activities.map((a, ai) => (
         <div key={ai} className="flex items-center gap-2">
           <input
             className="flex-1 rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm text-[#1B2A4A]"
-            placeholder="Desert safari with BBQ dinner"
+            placeholder="e.g. Guided city walk and local dinner"
             value={a}
             onChange={(e) => updateActivity(ai, e.target.value)}
           />
-          <button className="text-red-500 text-lg" onClick={() => removeActivity(ai)}>
+          <button type="button" className="text-red-500 text-lg" onClick={() => removeActivity(ai)}>
             ×
           </button>
         </div>
       ))}
-      <button className="self-start text-xs font-bold text-[#1B2A4A] underline" onClick={addActivity}>
+      <button type="button" className="self-start text-xs font-bold text-[#1B2A4A] underline" onClick={addActivity}>
         + Add activity
       </button>
 
@@ -86,6 +115,13 @@ export default function DayEditor({ day, index, setDayPlan }) {
           </button>
         ))}
       </div>
+      <label className="flex flex-col gap-1 text-xs font-semibold text-gray-500">Day photo URL (optional)
+        <input type="url" inputMode="url" placeholder="https://res.cloudinary.com/..." value={day.image?.url || ''} onChange={(event) => updateField('image', { ...(day.image || {}), url: event.target.value, publicId: '' })} className="rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm text-[#1B2A4A]" />
+      </label>
+      <p className="text-[11px] text-gray-500">Paste a public HTTPS image URL, or upload below. The PDF only loads approved image hosts.</p>
+      {day.image?.url && <img src={day.image.url} alt={day.image.alt || `Day ${day.dayNumber}`} className="h-28 w-full rounded-lg object-cover" />}
+      {ImageUploader && <ImageUploader buttonLabel="Upload day photo" onUploaded={(image) => updateField('image', image)} />}
+      </>}
     </div>
   );
 }

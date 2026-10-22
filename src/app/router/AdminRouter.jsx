@@ -18,6 +18,9 @@ import AdminUsersPage from '../../pages/Admin/Users/AdminUsersPage'
 import MediaLibraryPage from '../../pages/Admin/Media/MediaLibraryPage'
 import SimpleContentPage from '../../pages/Admin/Content/SimpleContentPage'
 import ItineraryBuilderPage from '../../pages/Admin/Itineraries/ItineraryBuilderPage';
+import ItineraryTemplatesPage from '../../pages/Admin/Itineraries/ItineraryTemplatesPage';
+import ItineraryTemplateFormPage from '../../pages/Admin/Itineraries/ItineraryTemplateFormPage';
+import ItineraryListPage from '../../pages/Admin/Itineraries/ItineraryListPage';
 import { ADMIN_ROUTES } from '../../constants/routes'; 
 import NewsList from '../../pages/Admin/NewsManagement/NewsList'
 import NewsForm from '../../pages/Admin/NewsManagement/NewsForm'
@@ -53,6 +56,11 @@ const AdminRouter = (
         <Route path={ADMIN_ROUTES.ENQUIRIES} element={<EnquiryListPage />} />
         <Route path={ADMIN_ROUTES.TRIP_ENQUIRIES} element={<TripEnquiryListPage />} />
        <Route path={ADMIN_ROUTES.ITINERARY_BUILDER_NEW} element={<ItineraryBuilderPage />} />
+        <Route path={ADMIN_ROUTES.ITINERARIES} element={<ItineraryListPage />} />
+        <Route path={ADMIN_ROUTES.ITINERARY_EDIT} element={<ItineraryBuilderPage />} />
+        <Route path={ADMIN_ROUTES.ITINERARY_TEMPLATES} element={<ItineraryTemplatesPage />} />
+        <Route path={ADMIN_ROUTES.ITINERARY_TEMPLATE_NEW} element={<ItineraryTemplateFormPage />} />
+        <Route path={ADMIN_ROUTES.ITINERARY_TEMPLATE_EDIT} element={<ItineraryTemplateFormPage />} />
         <Route path="/admin/news" element={<NewsList />} />
         <Route path="/admin/news/add" element={<NewsForm />} />
         <Route path="/admin/news/edit/:id" element={<NewsForm />} />

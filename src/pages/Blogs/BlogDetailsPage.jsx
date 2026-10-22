@@ -43,7 +43,17 @@ const getPostUrl = (post) => `/blogs/${post.slug}`
 const BlogImage = ({ post, className = '' }) => {
   const image = getImage(post)
 
-  return <img src={image} alt={post.coverImage?.alt || post.title} className={`h-full w-full object-cover ${className}`} />
+  return (
+    <img
+      src={image}
+      alt={post.coverImage?.alt || post.title}
+      className={`h-full w-full object-cover ${className}`}
+      onError={(event) => {
+        event.currentTarget.onerror = null
+        event.currentTarget.src = getFallbackImage(post)
+      }}
+    />
+  )
 }
 
 const normalizeSections = (post) => {

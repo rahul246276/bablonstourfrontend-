@@ -11,6 +11,7 @@ import {
   FaSuitcaseRolling,
   FaUserGear,
   FaUsers,
+  FaFileLines,
 } from 'react-icons/fa6'
 
 export const adminNav = [
@@ -23,6 +24,8 @@ export const adminNav = [
   { label: 'Add Destination', path: '/admin/destinations/new', icon: FaBars, roles: ['super_admin'] },
   { label: 'Enquiries', path: '/admin/enquiries', icon: FaUsers, roles: ['super_admin', 'admin'] },
   { label: 'Trip planner requests', path: '/admin/trip-enquiries', icon: FaSuitcaseRolling, roles: ['super_admin', 'admin'] },
+  { label: 'Itineraries', path: '/admin/itineraries', icon: FaFileLines, roles: ['super_admin', 'admin'] },
+  { label: 'Itinerary Templates', path: '/admin/itinerary-templates', icon: FaFileLines, roles: ['super_admin', 'admin'] },
   { label: 'Contact Messages', path: '/admin/contact-messages', icon: FaEnvelope, roles: ['super_admin', 'admin'] },
   { label: 'Testimonials', path: '/admin/testimonials', icon: FaNewspaper, roles: ['super_admin'] },
   { label: 'Blogs', path: '/admin/blogs', icon: FaBlog, roles: ['super_admin'] },

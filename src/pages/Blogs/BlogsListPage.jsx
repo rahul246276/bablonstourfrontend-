@@ -58,7 +58,18 @@ const getCategoryClass = (category) => categoryStyles[category] || 'bg-primary-7
 const BlogImage = ({ post, className = '' }) => {
   const image = getImage(post)
 
-  return <img src={image} alt={post.coverImage?.alt || post.title} className={`h-full w-full object-cover ${className}`} loading="lazy" />
+  return (
+    <img
+      src={image}
+      alt={post.coverImage?.alt || post.title}
+      className={`h-full w-full object-cover ${className}`}
+      loading="lazy"
+      onError={(event) => {
+        event.currentTarget.onerror = null
+        event.currentTarget.src = getFallbackImage(post)
+      }}
+    />
+  )
 }
 
 const BlogsListPage = () => {

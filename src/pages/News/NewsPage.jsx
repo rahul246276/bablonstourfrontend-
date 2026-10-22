@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import NewsSEO from "../../components/news/NewsSEO";
 import NewsSection from "../../components/news/NewsSection";
@@ -30,26 +30,29 @@ const NewsPage = () => {
     let mounted = true;
 
     const loadAll = async () => {
-      try {
-        const [featuredRes, latestRes, visaRes, airlineRes, countryRes] = await Promise.all([
-          fetchFeaturedNews(6),
-          fetchLatestNews(8),
-          fetchNewsByCategory("visa-update", 6),
-          fetchNewsByCategory("airline-news", 6),
-          fetchNewsByCategory("country-news", 6),
-        ]);
+      const requests = await Promise.allSettled([
+        fetchFeaturedNews(6),
+        fetchLatestNews(8),
+        fetchNewsByCategory("visa-update", 6),
+        fetchNewsByCategory("airline-news", 6),
+        fetchNewsByCategory("country-news", 6),
+      ]);
 
-        if (!mounted) return;
-        setFeatured(Array.isArray(featuredRes) ? featuredRes : featuredRes?.data || []);
-        setLatest(Array.isArray(latestRes) ? latestRes : latestRes?.data || []);
-        setVisaUpdates(Array.isArray(visaRes) ? visaRes : visaRes?.data || []);
-        setAirlineNews(Array.isArray(airlineRes) ? airlineRes : airlineRes?.data || []);
-        setCountryNews(Array.isArray(countryRes) ? countryRes : countryRes?.data || []);
-      } catch (err) {
-        console.error("Failed to load news sections:", err);
-      } finally {
-        if (mounted) setLoading(false);
+      if (!mounted) return;
+      const [featuredRes, latestRes, visaRes, airlineRes, countryRes] = requests.map((result) => {
+        if (result.status === "rejected") return [];
+        const value = result.value;
+        return Array.isArray(value) ? value : value?.data || [];
+      });
+      if (requests.some((result) => result.status === "rejected")) {
+        console.error("Some news sections could not be loaded. Check the API connection.");
       }
+      setFeatured(featuredRes);
+      setLatest(latestRes);
+      setVisaUpdates(visaRes);
+      setAirlineNews(airlineRes);
+      setCountryNews(countryRes);
+      setLoading(false);
     };
 
     loadAll();
