@@ -8,23 +8,10 @@ export default function DayEditor({ day, index, dayCount, setDayPlan, ImageUploa
     onEdit();
     setDayPlan((prev) => prev.map((d, i) => (i === index ? { ...d, [field]: value } : d)));
   }
-  function updateActivity(actIndex, value) {
+  function updateActivities(value) {
     onEdit();
-    setDayPlan((prev) =>
-      prev.map((d, i) =>
-        i === index ? { ...d, activities: d.activities.map((a, ai) => (ai === actIndex ? value : a)) } : d
-      )
-    );
-  }
-  function addActivity() {
-    onEdit();
-    setDayPlan((prev) => prev.map((d, i) => (i === index ? { ...d, activities: [...d.activities, ''] } : d)));
-  }
-  function removeActivity(actIndex) {
-    onEdit();
-    setDayPlan((prev) =>
-      prev.map((d, i) => (i === index ? { ...d, activities: d.activities.filter((_, ai) => ai !== actIndex) } : d))
-    );
+    const activities = value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    setDayPlan((prev) => prev.map((d, i) => (i === index ? { ...d, activities } : d)));
   }
   function toggleMeal(meal) {
     onEdit();
@@ -76,23 +63,9 @@ export default function DayEditor({ day, index, dayCount, setDayPlan, ImageUploa
       />
       <input className="rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm text-[#1B2A4A]" placeholder="Transfer / intercity travel (optional)" value={day.transfer || ''} onChange={(e) => updateField('transfer', e.target.value)} />
 
-      <span className="text-xs font-semibold text-gray-500">Activities</span>
-      {day.activities.map((a, ai) => (
-        <div key={ai} className="flex items-center gap-2">
-          <input
-            className="flex-1 rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm text-[#1B2A4A]"
-            placeholder="e.g. Guided city walk and local dinner"
-            value={a}
-            onChange={(e) => updateActivity(ai, e.target.value)}
-          />
-          <button type="button" className="text-red-500 text-lg" onClick={() => removeActivity(ai)}>
-            ×
-          </button>
-        </div>
-      ))}
-      <button type="button" className="self-start text-xs font-bold text-[#1B2A4A] underline" onClick={addActivity}>
-        + Add activity
-      </button>
+      <label className="flex flex-col gap-1 text-xs font-semibold text-gray-500">Activities <span className="font-normal">Enter one activity per line</span>
+        <textarea rows={5} className="rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm font-normal text-[#1B2A4A]" placeholder={'Guided city walk\nVisit the local market\nDinner at a local restaurant'} value={(day.activities || []).join('\n')} onChange={(e) => updateActivities(e.target.value)} />
+      </label>
 
       <input
         className="rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm text-[#1B2A4A]"
@@ -116,9 +89,9 @@ export default function DayEditor({ day, index, dayCount, setDayPlan, ImageUploa
         ))}
       </div>
       <label className="flex flex-col gap-1 text-xs font-semibold text-gray-500">Day photo URL (optional)
-        <input type="url" inputMode="url" placeholder="https://res.cloudinary.com/..." value={day.image?.url || ''} onChange={(event) => updateField('image', { ...(day.image || {}), url: event.target.value, publicId: '' })} className="rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm text-[#1B2A4A]" />
+        <input type="url" inputMode="url" placeholder="https://example.com/image.jpg" value={day.image?.url || ''} onChange={(event) => updateField('image', { ...(day.image || {}), url: event.target.value, publicId: '' })} className="rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm text-[#1B2A4A]" />
       </label>
-      <p className="text-[11px] text-gray-500">Paste a public HTTPS image URL, or upload below. The PDF only loads approved image hosts.</p>
+      <p className="text-[11px] text-gray-500">Paste a public HTTPS URL that opens directly to an image, or upload a photo. Any host is supported.</p>
       {day.image?.url && <img src={day.image.url} alt={day.image.alt || `Day ${day.dayNumber}`} className="h-28 w-full rounded-lg object-cover" />}
       {ImageUploader && <ImageUploader buttonLabel="Upload day photo" onUploaded={(image) => updateField('image', image)} />}
       </>}

@@ -115,7 +115,7 @@ export default function ItineraryBuilderPage() {
     Number(calculatedTotal) === 0 ? 'Package total is zero.' : '',
     !details.hotelsText.trim() ? 'No hotel details have been added.' : '',
     children > 0 && childrenAges.some((age) => age !== '' && age != null) && childrenAges.filter((age) => age !== '' && age != null).length !== children ? 'Complete every child age or leave all ages blank.' : '',
-    ...pdfImageWarnings.map((warning) => `Image blocked by PDF host allowlist: ${warning.url}`)
+    ...pdfImageWarnings.map((warning) => `Image URL could not be used in the PDF: ${warning.url}`)
   ].filter(Boolean);
 
   function hydrateItinerary(saved) {
@@ -490,8 +490,8 @@ export default function ItineraryBuilderPage() {
           {children > 0 && <div><button type="button" className="text-xs font-bold text-[#1B2A4A] underline" onClick={() => setShowChildrenAges((value) => !value)}>{showChildrenAges ? 'Hide child ages' : 'Add child ages (optional)'}</button>{showChildrenAges && <div className="mt-2 grid grid-cols-2 gap-3">{Array.from({ length: Number(children) }, (_, index) => <label key={index} className="flex flex-col gap-1.5 text-xs font-semibold text-gray-500">Child {index + 1} age<input type="number" min="0" max="17" value={childrenAges[index] ?? ''} onChange={(event) => setChildrenAges((prev) => { const next = [...prev]; next[index] = event.target.value === '' ? '' : Number(event.target.value); return next; })} className="rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm text-[#1B2A4A] focus:border-[#C99A3B] focus:outline-none focus:ring-2 focus:ring-[#C99A3B]/20" /></label>)}</div>}</div>}
         </Section>
 
-        <Section title="Destination overview and photos"><TextAreaField label="Destination introduction" value={details.destinationIntroduction} onChange={(value) => setDetails((prev) => ({ ...prev, destinationIntroduction: value }))} /><TextAreaField label="Destination experiences (one per line)" value={details.destinationHighlightsText} onChange={(value) => setDetails((prev) => ({ ...prev, destinationHighlightsText: value }))} /><TextAreaField label="Package highlights (one per line)" value={details.packageHighlightsText} onChange={(value) => setDetails((prev) => ({ ...prev, packageHighlightsText: value }))} /><PipeRowEditor label="Destination photos" rowsLabel="photos" value={details.destinationPhotosText} fields={[{ key: 'url', label: 'Image URL', placeholder: 'https://res.cloudinary.com/...' }, { key: 'caption', label: 'Caption' }, { key: 'alt', label: 'Alt text' }]} onChange={(value) => { setUnsavedChanges(true); setDetails((prev) => ({ ...prev, destinationPhotosText: value })); }} /><p className="text-[11px] text-gray-500">Add one image per row. Use a public HTTPS image URL from an approved host.</p></Section>
-        <Section title="Proposal cover"><TextField label="Cover image URL (approved HTTPS image host)" value={coverImage.url} onChange={(value) => setCoverImage((prev) => ({ ...prev, url: value, publicId: '' }))} /><TextField label="Cover image alt text" value={coverImage.alt} onChange={(value) => setCoverImage((prev) => ({ ...prev, alt: value }))} /><p className="text-[11px] text-gray-500">Paste a public HTTPS image URL here instead of uploading. URLs must use an approved host for PDF output.</p>{pdfImageWarnings.map((warning) => <p key={warning.url} className="text-xs text-amber-800">PDF image blocked: {warning.url} (allowed hosts: {warning.allowedHosts.join(', ')})</p>)}</Section>
+        <Section title="Destination overview and photos"><TextAreaField label="Destination introduction" value={details.destinationIntroduction} onChange={(value) => setDetails((prev) => ({ ...prev, destinationIntroduction: value }))} /><TextAreaField label="Destination experiences (one per line)" value={details.destinationHighlightsText} onChange={(value) => setDetails((prev) => ({ ...prev, destinationHighlightsText: value }))} /><TextAreaField label="Package highlights (one per line)" value={details.packageHighlightsText} onChange={(value) => setDetails((prev) => ({ ...prev, packageHighlightsText: value }))} /><PipeRowEditor label="Destination photos" rowsLabel="photos" value={details.destinationPhotosText} fields={[{ key: 'url', label: 'Image URL', placeholder: 'https://example.com/image.jpg' }, { key: 'caption', label: 'Caption' }, { key: 'alt', label: 'Alt text' }]} onChange={(value) => { setUnsavedChanges(true); setDetails((prev) => ({ ...prev, destinationPhotosText: value })); }} /><p className="text-[11px] text-gray-500">Add one image per row. Use a public HTTPS URL that opens directly to an image. Any host is supported.</p></Section>
+        <Section title="Proposal cover"><TextField label="Cover image URL (optional)" value={coverImage.url} onChange={(value) => setCoverImage((prev) => ({ ...prev, url: value, publicId: '' }))} /><TextField label="Cover image alt text" value={coverImage.alt} onChange={(value) => setCoverImage((prev) => ({ ...prev, alt: value }))} /><p className="text-[11px] text-gray-500">Use a public HTTPS URL that opens directly to an image. Any host is supported.</p>{pdfImageWarnings.map((warning) => <p key={warning.url} className="text-xs text-amber-800">PDF could not use image URL: {warning.url}</p>)}</Section>
 
         <Section title="Day-wise plan">
           {dayPlan.map((day, index) => (
@@ -611,34 +611,14 @@ function NumberField({ label, value, onChange, min = 0 }) {
   );
 }
 
-function ListField({ label, items, field, setPricing, onEdit = () => {} }) {
-  function update(i, val) {
-    onEdit();
-    setPricing((p) => ({ ...p, [field]: p[field].map((v, idx) => (idx === i ? val : v)) }));
-  }
-  function add() {
-    onEdit();
-    setPricing((p) => ({ ...p, [field]: [...p[field], ''] }));
-  }
-  function remove(i) {
-    onEdit();
-    setPricing((p) => ({ ...p, [field]: p[field].filter((_, idx) => idx !== i) }));
-  }
-
+function ListField({ label, items = [], field, setPricing, onEdit = () => {} }) {
   return (
-    <div className="flex flex-col gap-2">
-      <span className="text-xs font-semibold text-gray-500">{label}</span>
-      {items.map((item, i) => (
-        <div key={i} className="flex items-center gap-2">
-          <input className="flex-1 rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm text-[#1B2A4A]" value={item} onChange={(e) => update(i, e.target.value)} />
-          <button className="text-red-500 text-lg" onClick={() => remove(i)}>
-            ×
-          </button>
-        </div>
-      ))}
-      <button className="self-start text-xs font-bold text-[#1B2A4A] underline" onClick={add}>
-        + Add {label.toLowerCase().slice(0, -1)}
-      </button>
-    </div>
+    <label className="flex flex-col gap-1.5 text-xs font-semibold text-gray-500">{label}<span className="font-normal">Enter one item per line</span>
+      <textarea rows={5} className="rounded-lg border border-[#E4DCC8] px-3 py-2 text-sm font-normal text-[#1B2A4A]" placeholder={'First item\nSecond item\nThird item'} value={items.join('\n')} onChange={(event) => {
+        onEdit();
+        const values = event.target.value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+        setPricing((previous) => ({ ...previous, [field]: values }));
+      }} />
+    </label>
   );
 }
