@@ -18,9 +18,12 @@ const itineraryService = {
   pdfUrl: (id) => `${API_BASE}/itineraries/${id}/pdf`,
   docxUrl: (id) => `${API_BASE}/itineraries/${id}/docx`,
 
-  pdfBlob: async (id) => (await api.get('/itineraries/' + id + '/pdf', { responseType: 'blob' })).data,
+  pdfBlob: async (id) => (await api.get('/itineraries/' + id + '/pdf', { responseType: 'blob', timeout: 240000 })).data,
   downloadAsBlob: async (id, type = 'pdf') => {
-    const res = await api.get(`/itineraries/${id}/${type}`, { responseType: 'blob' });
+    const res = await api.get(`/itineraries/${id}/${type}`, {
+      responseType: 'blob',
+      ...(type === 'pdf' ? { timeout: 240000 } : {})
+    });
     const blobUrl = window.URL.createObjectURL(new Blob([res.data]));
     const link = document.createElement('a');
     link.href = blobUrl;
